@@ -1,0 +1,239 @@
+#!/bin/zsh
+
+# GitHub and Git Shortcuts
+# ------------------------
+
+# Unalias any potential conflicts
+unalias gitinit 2>/dev/null
+unalias gitbmain 2>/dev/null
+unalias gitadd 2>/dev/null
+unalias gitpull 2>/dev/null
+unalias gitforce 2>/dev/null
+unalias gitpush 2>/dev/null
+unalias gitmv 2>/dev/null
+unalias gitc 2>/dev/null
+
+# Helper function to check if in git repository
+_is_git_repo() {
+    if git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
+        true  # Return success
+    else
+        echo "❌ Not a git repository. Please run 'gitinit' first."
+        false  # Return failure
+    fi
+}
+
+# Basic Git Operations
+gitinit() {
+    git init
+    echo "✅ Initialized git repository"
+}
+
+gitbmain() {
+    _is_git_repo && {
+        git branch -M main
+        echo "✅ Renamed branch to main"
+    }
+}
+
+gitadd() {
+    _is_git_repo && {
+        git add .
+        echo "✅ Added all files to staging"
+    }
+}
+
+gitpull() {
+    _is_git_repo && {
+        git pull origin main
+        echo "✅ Pulled from origin main"
+    }
+}
+
+gitforce() {
+    _is_git_repo && {
+        git push origin main --force
+        echo "✅ Force pushed to main"
+    }
+}
+
+# Push to GitHub with upstream tracking
+gitpush() {
+    _is_git_repo && {
+        git push -u origin main
+        echo "✅ Pushed to GitHub with upstream tracking"
+    }
+}
+
+# Create GitHub repository using current directory name
+githubcreate() {
+    local repo=$(basename "$PWD")
+    gh repo create "$repo" --public --source=. --remote=origin
+    echo "✅ Created GitHub repository: $repo"
+}
+
+# Add remote origin with URL prompt
+gitremote() {
+    echo "Enter GitHub repository URL:"
+    read repo_url
+    git remote add origin "$repo_url"
+    echo "✅ Added remote origin: $repo_url"
+}
+
+# Create .gitignore with language prompt
+gitignore() {
+    echo "Enter language for .gitignore template (e.g., Python, Node):"
+    read lang
+    curl -sL "https://www.toptal.com/developers/gitignore/api/$lang" > .gitignore
+    echo "✅ Created .gitignore for $lang"
+}
+
+# Commit with message prompt
+gitcommit() {
+    _is_git_repo && {
+        echo "Enter commit message:"
+        read message
+        git commit -m "$message"
+        echo "✅ Changes committed with message: $message"
+    }
+}
+
+# Add file and commit
+gitaddfile() {
+    _is_git_repo && {
+        echo "Enter file to add:"
+        read file
+        git add "$file"
+        git commit -m "Added $file"
+        git push origin main
+        echo "✅ Added and committed: $file"
+    }
+}
+
+# Remove file and commit
+gitrmfile() {
+    _is_git_repo && {
+        echo "Enter file to remove:"
+        read file
+        git rm "$file"
+        git commit -m "Removed $file"
+        git push origin main
+        echo "✅ Removed and committed: $file"
+    }
+}
+
+# Add all and commit with timestamp
+gitaddall() {
+    _is_git_repo && {
+        local timestamp=$(date '+%Y-%m-%d %H:%M:%S')
+        git add .
+        git commit -m "Update: $timestamp"
+        git push origin main
+        echo "✅ All changes committed and pushed with timestamp"
+    }
+}
+
+# Rename file with commit
+gitmv() {
+    _is_git_repo && {
+        echo "Enter current file name:"
+        read old_file
+        echo "Enter new file name:"
+        read new_file
+        git mv "$old_file" "$new_file"
+        git commit -m "Renamed $old_file to $new_file"
+        git push origin main
+        echo "✅ Renamed $old_file to $new_file"
+    }
+}
+
+# Create new branch
+gitbranch() {
+    _is_git_repo && {
+        echo "Enter new branch name:"
+        read branch_name
+        git checkout -b "$branch_name"
+        echo "✅ Created and switched to branch: $branch_name"
+    }
+}
+
+# Push branch to GitHub
+gitpushbranch() {
+    _is_git_repo && {
+        local current_branch=$(git rev-parse --abbrev-ref HEAD)
+        git push origin "$current_branch"
+        echo "✅ Pushed branch: $current_branch"
+    }
+}
+
+# Remove cached files
+gituncache() {
+    _is_git_repo && {
+        echo "⚠️  This will remove all files from Git's cache."
+        echo "Make sure your .gitignore is set up correctly first!"
+        echo "Continue? (y/n)"
+        read confirm
+        if [[ $confirm == "y" ]]; then
+            git rm --cached -r .
+            echo "✅ Removed all files from Git cache"
+        fi
+    }
+}
+
+# Project Setup Commands
+# --------------------
+
+# Create scripts directory
+gitscripts() {
+    mkdir -p scripts
+    echo "✅ Created scripts directory"
+}
+
+# Simple commit without prompt
+gitc() {
+    _is_git_repo && {
+        echo "Enter commit message (or press enter for timestamp commit):"
+        read message
+        if [ -z "$message" ]; then
+            local timestamp=$(date '+%Y-%m-%d %H:%M:%S')
+            git commit -m "Update: $timestamp"
+        else
+            git commit -m "$message"
+        fi
+        echo "✅ Changes committed"
+    }
+}
+
+# Command Completion
+# -----------------
+
+# Create array of custom git commands
+_custom_git_commands=(
+    "gitinit:Initialize Git repository"
+    "gitbmain:Rename branch to main"
+    "gitadd:Add all files"
+    "gitpull:Pull from origin main"
+    "gitforce:Force push to main"
+    "gitpush:Push with upstream tracking"
+    "githubcreate:Create GitHub repository"
+    "gitremote:Add remote origin"
+    "gitignore:Create .gitignore file"
+    "gitcommit:Commit with message"
+    "gitaddfile:Add and commit file"
+    "gitrmfile:Remove and commit file"
+    "gitaddall:Add all with timestamp"
+    "gitmv:Rename file with commit"
+    "gitbranch:Create new branch"
+    "gitpushbranch:Push current branch"
+    "gituncache:Remove cached files"
+    "gitscripts:Create scripts directory"
+    "gitc:Quick commit with optional message"
+)
+
+# Register completion function
+_custom_git_completion() {
+    _describe 'command' _custom_git_commands
+}
+
+# Bind completion function to our commands
+compdef _custom_git_completion gitinit gitbmain gitadd gitpull gitforce gitpush githubcreate gitremote gitignore gitcommit gitaddfile gitrmfile gitaddall gitmv gitbranch gitpushbranch gituncache gitscripts gitc 
