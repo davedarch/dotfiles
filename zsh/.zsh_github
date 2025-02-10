@@ -183,6 +183,17 @@ gituncache() {
 # Project Setup Commands
 # --------------------
 
+# Complete git and GitHub repository setup
+gitsetup() {
+    _is_git_repo || {
+        gitinit
+        githubcreate
+        gitaddall
+        gitpush
+        echo "✨ Setup complete! Your repository is now on GitHub."
+    }
+}
+
 # Create scripts directory
 gitscripts() {
     mkdir -p scripts
@@ -228,6 +239,7 @@ _custom_git_commands=(
     "gituncache:Remove cached files"
     "gitscripts:Create scripts directory"
     "gitc:Quick commit with optional message"
+    "gitsetup:Initialize and push new repository to GitHub"
 )
 
 # Register completion function
@@ -236,4 +248,4 @@ _custom_git_completion() {
 }
 
 # Bind completion function to our commands
-compdef _custom_git_completion gitinit gitbmain gitadd gitpull gitforce gitpush githubcreate gitremote gitignore gitcommit gitaddfile gitrmfile gitaddall gitmv gitbranch gitpushbranch gituncache gitscripts gitc 
+compdef _custom_git_completion gitinit gitbmain gitadd gitpull gitforce gitpush githubcreate gitremote gitignore gitcommit gitaddfile gitrmfile gitaddall gitmv gitbranch gitpushbranch gituncache gitscripts gitc gitsetup 
