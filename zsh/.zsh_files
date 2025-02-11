@@ -1,0 +1,135 @@
+# Add safety checks and error handling
+mkfolders() {
+    if [[ $# -lt 1 ]]; then
+        echo "❌ Usage: mkfolders <count> [prefix]"
+        return 1
+    }
+    local count=$1
+    local prefix=${2:-"folder"}
+    for i in $(seq 1 $count); do
+        mkdir -p "${prefix}_${i}"
+    done
+    echo "✅ Created $count folders with prefix '$prefix'"
+}
+
+batchrename() {
+    if [[ $# -ne 3 ]]; then
+        echo "❌ Usage: batchrename \"<pattern>\" \"<from>\" \"<to>\""
+        echo "Example: batchrename \"*.txt\" \".txt\" \".md\""
+        return 1
+    }
+    # Add confirmation for safety
+    echo "⚠️  This will rename all files matching $1 from $2 to $3"
+    echo "Continue? (y/n)"
+    read confirm
+    [[ $confirm != "y" ]] && return
+    
+    local pattern=$1
+    local from=$2
+    local to=$3
+    for file in $pattern; do
+        mv "$file" "${file%$from}$to"
+    done
+    echo "✅ Renamed files from *$from to *$to"
+}
+
+deletebyattr() {
+    if [[ $# -ne 2 ]]; then
+        echo "❌ Usage: deletebyattr \"<pattern>\" \"<days>\""
+        echo "Example: deletebyattr \"*.log\" \"+7\""
+        return 1
+    }
+    # Add confirmation for safety
+    echo "⚠️  This will delete all $1 files older than ${2#*+} days"
+    echo "Continue? (y/n)"
+    read confirm
+    [[ $confirm != "y" ]] && return
+    
+    local pattern=$1
+    local days=$2
+    find . -name "$pattern" -mtime $days -delete
+    echo "✅ Deleted $pattern files older than ${days#*+} days"
+}
+
+# Add more useful templates
+mkstructure() {
+    local name=$1
+    local templates=(
+        "project:src,tests,docs,assets"
+        "web:css,js,images,html"
+        "python:src,tests,data,notebooks"
+        "node:src,dist,public,components"
+        "docs:pages,images,assets,examples"
+        "api:routes,controllers,models,middleware"
+    )
+    
+    if [[ $# -ne 1 ]]; then
+        echo "❌ Usage: mkstructure <template>"
+        echo "Available templates:"
+        for template in "${templates[@]}"; do
+            local key="${template%%:*}"
+            local dirs="${template#*:}"
+            echo "  - $key (creates: ${dirs//,/, })"
+        done
+        return 1
+    }
+    
+    for template in "${templates[@]}"; do
+        local key="${template%%:*}"
+        local dirs="${template#*:}"
+        if [[ "$name" == "$key" ]]; then
+            mkdir -p "$name"
+            cd "$name"
+            echo "${dirs//,/ }" | xargs mkdir -p
+            echo "✅ Created $name structure with directories: ${dirs//,/, }"
+            return 0
+        fi
+    done
+    
+    echo "❌ Invalid template. Use mkstructure without arguments to see available templates."
+    return 1
+}
+
+# Add new function for batch operations
+batchop() {
+    if [[ $# -lt 2 ]]; then
+        echo "❌ Usage: batchop <move|copy|delete> \"<pattern>\" [destination]"
+        return 1
+    }
+
+    local operation=$1
+    local pattern=$2
+    local destination=$3
+
+    # Check if destination is provided for move/copy operations
+    if [[ "$operation" =~ ^(move|copy)$ ]] && [[ -z "$destination" ]]; then
+        echo "❌ Destination required for $operation operation"
+        return 1
+    }
+
+    # Add confirmation for safety
+    echo "⚠️  This will $operation all files matching $pattern"
+    [[ -n "$destination" ]] && echo "to $destination"
+    echo "Continue? (y/n)"
+    read confirm
+    [[ $confirm != "y" ]] && return
+
+    case "$operation" in
+        "move")
+            mv $pattern "$destination/"
+            echo "✅ Moved files matching $pattern to $destination"
+            ;;
+        "copy")
+            cp -r $pattern "$destination/"
+            echo "✅ Copied files matching $pattern to $destination"
+            ;;
+        "delete")
+            rm -r $pattern
+            echo "✅ Deleted files matching $pattern"
+            ;;
+        *)
+            echo "❌ Invalid operation. Use: move, copy, or delete"
+            return 1
+            ;;
+    esac
+} 

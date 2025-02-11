@@ -90,6 +90,7 @@ plugins=(
     npm
     vscode
     z
+    zsh-syntax-highlighting
 )
 
 source $ZSH/oh-my-zsh.sh
@@ -99,7 +100,7 @@ source $ZSH/oh-my-zsh.sh
 # export MANPATH="/usr/local/man:$MANPATH"
 
 # You may need to manually set your language environment
-# export LANG=en_US.UTF-8
+export LANG=en_US.UTF-8
 
 # Preferred editor for local and remote sessions
 # if [[ -n $SSH_CONNECTION ]]; then
@@ -126,11 +127,15 @@ source $ZSH/oh-my-zsh.sh
 # My git/github alias from a seperate file
 source ~/.zsh_github 
 
+# Source file management functions
+source ~/.zsh_files
+
 # Useful aliases
 alias ll='ls -lah'
 alias ..='cd ..'
 alias ...='cd ../..'
 alias grep='grep --color=auto'
+alias scz='exec zsh'  # Reload ZSH configuration completely
 
 # Enable syntax highlighting if installed
 if [ -f /usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh ]; then
@@ -141,3 +146,11 @@ fi
 zstyle ':completion:*' menu select
 zmodload zsh/complist
 _comp_options+=(globdots) # Include hidden files in completion
+
+# Load custom completions if they exist
+if [ -d $ZSH_CUSTOM/completions ]; then
+    fpath=($ZSH_CUSTOM/completions $fpath)
+fi
+
+# Initialize completion system
+autoload -Uz compinit && compinit
