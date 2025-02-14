@@ -68,9 +68,6 @@ alias gp='git push'
 alias gl='git pull'
 alias scz='source ~/.zshrc'  # Quick reload of zsh configuration
 
-# Load custom functions and additional configurations
-[[ -f ~/.zsh_files ]] && source ~/.zsh_files
-
 # Load powerlevel10k config
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
 

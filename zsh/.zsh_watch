@@ -1,0 +1,23 @@
+#!/bin/zsh
+
+WATCHED_DIR="$HOME/watch-test"  # Replace with the directory you want to monitor
+
+# Define the action to perform on new files
+process_file() {
+    local filepath="$1"
+    echo "New file detected: $filepath"
+    # Add your predefined actions here
+    # For example, move the file to another directory
+    # mv "$filepath" "$HOME/path/to/destination/"
+}
+
+# Ensure fswatch is installed
+if ! command -v fswatch &> /dev/null; then
+    echo "fswatch could not be found. Please install it using your package manager."
+    exit 1
+fi
+
+# Start watching the directory
+fswatch -0 "$WATCHED_DIR" | while read -d "" event; do
+    process_file "$event"
+done 

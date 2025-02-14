@@ -1,9 +1,17 @@
+#!/bin/zsh
+
+# Add a check to prevent double-loading
+if [[ -n "$ZSH_FILES_LOADED" ]]; then
+    return 0
+fi
+ZSH_FILES_LOADED=1
+
 # Add safety checks and error handling
 mkfolders() {
     if [[ $# -lt 1 ]]; then
         echo "❌ Usage: mkfolders <count> [prefix]"
         return 1
-    }
+    fi
     local count=$1
     local prefix=${2:-"folder"}
     for i in $(seq 1 $count); do
@@ -17,7 +25,7 @@ batchrename() {
         echo "❌ Usage: batchrename \"<pattern>\" \"<from>\" \"<to>\""
         echo "Example: batchrename \"*.txt\" \".txt\" \".md\""
         return 1
-    }
+    fi
     # Add confirmation for safety
     echo "⚠️  This will rename all files matching $1 from $2 to $3"
     echo "Continue? (y/n)"
@@ -38,7 +46,7 @@ deletebyattr() {
         echo "❌ Usage: deletebyattr \"<pattern>\" \"<days>\""
         echo "Example: deletebyattr \"*.log\" \"+7\""
         return 1
-    }
+    fi
     # Add confirmation for safety
     echo "⚠️  This will delete all $1 files older than ${2#*+} days"
     echo "Continue? (y/n)"
@@ -72,7 +80,7 @@ mkstructure() {
             echo "  - $key (creates: ${dirs//,/, })"
         done
         return 1
-    }
+    fi
     
     for template in "${templates[@]}"; do
         local key="${template%%:*}"
@@ -95,7 +103,7 @@ batchop() {
     if [[ $# -lt 2 ]]; then
         echo "❌ Usage: batchop <move|copy|delete> \"<pattern>\" [destination]"
         return 1
-    }
+    fi
 
     local operation=$1
     local pattern=$2
@@ -105,7 +113,7 @@ batchop() {
     if [[ "$operation" =~ ^(move|copy)$ ]] && [[ -z "$destination" ]]; then
         echo "❌ Destination required for $operation operation"
         return 1
-    }
+    fi
 
     # Add confirmation for safety
     echo "⚠️  This will $operation all files matching $pattern"
@@ -132,4 +140,52 @@ batchop() {
             return 1
             ;;
     esac
+}
+
+# Sort files into folders by extension
+sortbytype() {
+    if [[ $# -gt 1 ]]; then
+        echo "❌ Usage: sortbytype [directory]"
+        return 1
+    fi
+
+    local target_dir="${1:-.}"  # Use current directory if none specified
+    
+    # Add confirmation for safety
+    echo "⚠️  This will sort all files in $target_dir into type-based folders"
+    echo "Continue? (y/n)"
+    read confirm
+    [[ $confirm != "y" ]] && return
+
+    # Create 'other' directory for unknown types
+    mkdir -p "$target_dir/other"
+
+    # Process each file
+    for file in "$target_dir"/*; do
+        # Skip if it's a directory
+        [[ -d "$file" ]] && continue
+
+        # Get the extension (lowercase) or 'noext' if none
+        local ext=$(echo "${file##*.}" | tr '[:upper:]' '[:lower:]')
+        [[ "$file" == *"."* ]] || ext="noext"
+        
+        # Skip if the file is the same as its extension (e.g., .gitignore)
+        [[ "$(basename "$file")" == ".$ext" ]] && continue
+
+        # Create directory for this type if it doesn't exist
+        mkdir -p "$target_dir/$ext"
+
+        # Try to move the file, if fails move to 'other'
+        if ! mv "$file" "$target_dir/$ext/" 2>/dev/null; then
+            mv "$file" "$target_dir/other/" 2>/dev/null
+            echo "⚠️  Moved to other: $(basename "$file")"
+        else
+            echo "✅ Moved to $ext: $(basename "$file")"
+        fi
+    done
+
+    # Clean up empty directories
+    find "$target_dir" -type d -empty -delete 2>/dev/null
+
+    echo "✨ Sorting complete!"
 } 
