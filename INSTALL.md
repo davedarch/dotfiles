@@ -10,8 +10,8 @@
 - xargs utility
 
 ### Optional Dependencies
-- Oh My Zsh (recommended for best experience)
-- zsh-syntax-highlighting
+- Zinit plugin manager (will be installed automatically)
+- Powerlevel10k theme (will be installed automatically)
 
 ## Quick Install (Automated)
 
@@ -26,8 +26,8 @@
     ./setup.sh
 
 The setup script will:
-- Install required packages (zsh, syntax highlighting)
-- Install Oh My Zsh if not present
+- Install required packages (zsh)
+- Install Zinit if not present
 - Create all necessary symlinks
 - Source the new configuration
 
@@ -49,12 +49,12 @@ The setup script will:
     sudo apt update
     sudo apt install gh
     
-    # Install Oh My Zsh dependencies
+    # Install Zinit dependencies
     sudo apt-get install -y curl wget git
 
-2. Install Oh My Zsh:
+2. Install Zinit:
     
-    sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+    bash -c "$(curl --fail --show-error --silent --location https://raw.githubusercontent.com/zdharma-continuum/zinit/HEAD/scripts/install.sh)"
 
 3. Clone the repository:
     
@@ -116,11 +116,22 @@ If GitHub functions fail:
     
     gh auth login
 
+### Zinit Issues
+If Zinit plugins aren't loading:
+1. Verify Zinit is installed:
+    
+    ls -la ~/.local/share/zinit
+
+2. Reinstall if needed:
+    
+    rm -rf ~/.local/share/zinit
+    bash -c "$(curl --fail --show-error --silent --location https://raw.githubusercontent.com/zdharma-continuum/zinit/HEAD/scripts/install.sh)"
+
 ## Post-Installation
 
 1. Customize your .zshrc:
-    - Choose your preferred theme
-    - Add additional plugins
+    - Modify Powerlevel10k configuration
+    - Add additional Zinit plugins
     - Set custom aliases
 
 2. Update your git configuration:
@@ -152,6 +163,6 @@ To remove:
     
     rm -rf ~/dotfiles
 
-4. Optionally remove Oh My Zsh:
+4. Optionally remove Zinit:
     
-    uninstall_oh_my_zsh 
+    rm -rf ~/.local/share/zinit 

@@ -3,20 +3,31 @@
 # Create symlinks
 ln -sf "$HOME/dotfiles/zsh/.zshrc" "$HOME/.zshrc"
 ln -sf "$HOME/dotfiles/zsh/.zsh_github" "$HOME/.zsh_github"
+ln -sf "$HOME/dotfiles/zsh/.zsh_files" "$HOME/.zsh_files"
 
 # Install required packages
 if command -v apt-get >/dev/null; then
     sudo apt-get update
-    sudo apt-get install -y zsh
+    sudo apt-get install -y zsh git curl
 fi
 
-# Set up zsh-syntax-highlighting
-ZSH_CUSTOM="${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}"
-if [ ! -d "$ZSH_CUSTOM/plugins/zsh-syntax-highlighting" ]; then
-    git clone https://github.com/zsh-users/zsh-syntax-highlighting.git "$ZSH_CUSTOM/plugins/zsh-syntax-highlighting"
+# Install Zinit if not present
+if [ ! -d "${HOME}/.local/share/zinit" ]; then
+    echo "Installing Zinit..."
+    bash -c "$(curl --fail --show-error --silent --location https://raw.githubusercontent.com/zdharma-continuum/zinit/HEAD/scripts/install.sh)"
 fi
 
-# Install Oh My Zsh if not present
-if [ ! -d "$HOME/.oh-my-zsh" ]; then
-    sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
-fi 
+# Install pyenv if not present
+if [ ! -d "${HOME}/.pyenv" ]; then
+    echo "Installing pyenv..."
+    curl https://pyenv.run | bash
+fi
+
+# Set zsh as default shell if it's not already
+if [ "$SHELL" != "$(which zsh)" ]; then
+    echo "Setting zsh as default shell..."
+    chsh -s "$(which zsh)"
+    echo "Please log out and log back in for the shell change to take effect."
+fi
+
+echo "Setup complete! Start a new terminal session or run 'exec zsh' to apply changes." 

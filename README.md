@@ -6,9 +6,11 @@ Personal configuration files and setup scripts for development environment.
 
     dotfiles/
     ├── README.md
+    ├── INSTALL.md
     ├── setup.sh
     ├── zsh/
-    │   ├── .zshrc              # ZSH configuration
+    │   ├── .zshrc              # ZSH configuration with Zinit
+    │   ├── .zsh_files          # Custom functions and configurations
     │   └── .zsh_github         # Git/GitHub specific aliases and functions
     └── scripts/
         └── _shell-scripts/     # Custom shell scripts
@@ -16,31 +18,37 @@ Personal configuration files and setup scripts for development environment.
 ## Installation
 
 1. Clone the repository:
-
+    ```
     git clone https://github.com/YOUR_USERNAME/dotfiles.git ~/dotfiles
     cd ~/dotfiles
+    ```
 
 2. Run the setup script:
-
+    ```
     chmod +x setup.sh
     ./setup.sh
+    ```
+
+For detailed installation instructions, see [INSTALL.md](INSTALL.md).
 
 ## What the Setup Script Does
 
 - Creates necessary symlinks
-- Installs required packages (zsh, syntax highlighting)
-- Installs Oh My Zsh if not present
+- Installs required packages (zsh)
+- Installs Zinit plugin manager if not present
 
 ## Symlinks Created
 
 - `~/.zshrc` → `~/dotfiles/zsh/.zshrc`
 - `~/.zsh_github` → `~/dotfiles/zsh/.zsh_github`
+- `~/.zsh_files` → `~/dotfiles/zsh/.zsh_files`
 
 ## Manual Setup Steps
 
 1. Change your default shell to zsh:
-
+    ```
     chsh -s $(which zsh)
+    ```
 
 2. Log out and log back in for the shell change to take effect
 
@@ -54,15 +62,14 @@ To update your dotfiles on any machine:
 
 ## Components
 
-- **ZSH Configuration**: Enhanced shell with Oh My Zsh
+- **ZSH Configuration**: Enhanced shell with Zinit
 - **Git Aliases**: Custom git commands and shortcuts
 - **Shell Scripts**: Various utility scripts
 
 ## Dependencies
 
 - zsh
-- Oh My Zsh
-- zsh-syntax-highlighting
+- Zinit
 - git
 
 ## License
