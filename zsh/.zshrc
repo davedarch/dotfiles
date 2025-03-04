@@ -76,3 +76,8 @@ alias scz='source ~/.zshrc'  # Quick reload of zsh configuration
 
 # Load GitHub shortcuts
 [[ -f ~/.zsh_github ]] && source ~/.zsh_github
+
+# Load pyenv  
+export PYENV_ROOT="$HOME/.pyenv"
+command -v pyenv >/dev/null || export PATH="$PYENV_ROOT/bin:$PATH"
+eval "$(pyenv init -)"
