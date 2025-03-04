@@ -45,22 +45,25 @@ gitadd() {
 
 gitpull() {
     _is_git_repo && {
-        git pull origin main
-        echo "✅ Pulled from origin main"
+        local current_branch=$(git rev-parse --abbrev-ref HEAD)
+        git pull origin "$current_branch"
+        echo "✅ Pulled from origin $current_branch"
     }
 }
 
 gitforce() {
     _is_git_repo && {
-        git push origin main --force
-        echo "✅ Force pushed to main"
+        local current_branch=$(git rev-parse --abbrev-ref HEAD)
+        git push origin "$current_branch" --force
+        echo "✅ Force pushed to $current_branch"
     }
 }
 
 # Push to GitHub with upstream tracking
 gitpush() {
     _is_git_repo && {
-        git push -u origin main
+        local current_branch=$(git rev-parse --abbrev-ref HEAD)
+        git push -u origin "$current_branch"
         echo "✅ Pushed to GitHub with upstream tracking"
     }
 }
@@ -105,7 +108,8 @@ gitaddfile() {
         read file
         git add "$file"
         git commit -m "Added $file"
-        git push origin main
+        local current_branch=$(git rev-parse --abbrev-ref HEAD)
+        git push origin "$current_branch"
         echo "✅ Added and committed: $file"
     }
 }
@@ -117,7 +121,8 @@ gitrmfile() {
         read file
         git rm "$file"
         git commit -m "Removed $file"
-        git push origin main
+        local current_branch=$(git rev-parse --abbrev-ref HEAD)
+        git push origin "$current_branch"
         echo "✅ Removed and committed: $file"
     }
 }
@@ -126,9 +131,10 @@ gitrmfile() {
 gitaddall() {
     _is_git_repo && {
         local timestamp=$(date '+%Y-%m-%d %H:%M:%S')
+        local current_branch=$(git rev-parse --abbrev-ref HEAD)
         git add .
         git commit -m "Update: $timestamp"
-        git push origin main
+        git push origin "$current_branch"
         echo "✅ All changes committed and pushed with timestamp"
     }
 }
@@ -142,7 +148,8 @@ gitmv() {
         read new_file
         git mv "$old_file" "$new_file"
         git commit -m "Renamed $old_file to $new_file"
-        git push origin main
+        local current_branch=$(git rev-parse --abbrev-ref HEAD)
+        git push origin "$current_branch"
         echo "✅ Renamed $old_file to $new_file"
     }
 }
@@ -186,10 +193,35 @@ gituncache() {
 # Complete git and GitHub repository setup
 gitsetup() {
     _is_git_repo || {
+        # Initialize repository if not already a repo
         gitinit
+
+        # Create GitHub repository (if it already exists, you'll get a warning)
         githubcreate
-        gitaddall
-        gitpush
+
+        # Always ensure README.md exists; .git folder causes ls -A to be non-empty,
+        # so check explicitly for README.md.
+        if [ ! -f README.md ]; then
+            echo "# $(basename "$PWD")" > README.md
+            echo "✅ Created README.md file"
+        fi
+
+        # Stage files (both README.md and any other files)
+        git add README.md
+        git add .
+
+        local timestamp=$(date '+%Y-%m-%d %H:%M:%S')
+        git commit -m "Initial commit: $timestamp"
+        if [ $? -eq 0 ]; then
+            # Now rename the branch after the commit exists
+            gitbmain
+
+            # Push to GitHub (gitpush now uses the current branch)
+            gitpush
+        else
+            echo "⚠️ Nothing to commit; skipping branch rename and push."
+        fi
+
         echo "✨ Setup complete! Your repository is now on GitHub."
     }
 }
